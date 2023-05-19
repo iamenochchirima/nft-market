@@ -6,17 +6,22 @@ import Item from "./Item";
 function Minter() {
   const { register, handleSubmit } = useForm();
   const [NFTID, setNFTID] = useState("");
-  const [loaderHidden, setLoading] = useState(true)
+  const [loaderHidden, setLoading] = useState(true);
 
   async function onSubmit(data) {
-    setLoading(false)
-    const name = data.name;
-    const image = data.image[0];
-    const imageByteData = [...new Uint8Array(await image.arrayBuffer())];
+    setLoading(false);
+    try {
+      const name = data.name;
+      const image = data.image[0];
+      const imageByteData = [...new Uint8Array(await image.arrayBuffer())];
 
-    const newNFTID = await opend_backend.mint(imageByteData, name);
-    setNFTID(newNFTID.toText());
-    setLoading(true)
+      const newNFTID = await opend_backend.mint(imageByteData, name);
+      setLoading(true);
+      setNFTID(newNFTID.toText());
+    } catch (error) {
+      console.log(error);
+      setLoading(true);
+    }
   }
 
   if (NFTID == "") {

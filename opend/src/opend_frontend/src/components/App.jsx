@@ -6,14 +6,13 @@ import Item from "./Item";
 import Minter from "./Minter";
 
 function App() {
-  const NFTID = "sgymv-uiaaa-aaaaa-aaaia-cai";
+  // const NFTID = "sgymv-uiaaa-aaaaa-aaaia-cai";
 
   return (
     <div className="App">
       <Header />
-      <Minter />
+      {/* <Minter /> */}
       {/* <Item {...{NFTID}}/> */}
-      {/* <img className="bottom-space" src="./home-img.png" /> */}
       <Footer />
     </div>
   );

@@ -6,7 +6,7 @@ import { Principal } from "@dfinity/principal";
 function Item({ NFTID }) {
   const localHost = "http://127.0.0.1:8080/";
   const agent = new HttpAgent({ host: localHost });
-  const id = Principal.fromText(NFTID);
+  const id = NFTID;
   const [nftImage, setImage] = useState(null)
   const [name, setName] = useState("")
   const [owner, setOwner] = useState("")
