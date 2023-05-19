@@ -2,14 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "../../../declarations/nft/index";
 import { Principal } from "@dfinity/principal";
+import Button from "./Button";
+import { opend_backend } from "../../../declarations/opend_backend/index";
 
 function Item({ NFTID }) {
   const localHost = "http://127.0.0.1:8080/";
   const agent = new HttpAgent({ host: localHost });
   const id = NFTID;
-  const [nftImage, setImage] = useState(null)
-  const [name, setName] = useState("")
-  const [owner, setOwner] = useState("")
+  const [nftImage, setImage] = useState(null);
+  const [name, setName] = useState("");
+  const [owner, setOwner] = useState("");
+  const [button, setButton] = useState();
+  const [priceInput, setPriceInput] = useState();
 
   async function loadNFT() {
     const NFTActor = await Actor.createActor(idlFactory, {
@@ -17,18 +21,45 @@ function Item({ NFTID }) {
       canisterId: id,
     });
 
-    const name = await NFTActor.getName()
-    const ownerPrinc = await NFTActor.getOwner()
-    const rawImage = await NFTActor.getContent()
-    const owner = ownerPrinc.toString()
-    const imageContent = new Uint8Array(rawImage)
-    const image = URL.createObjectURL(new Blob([imageContent.buffer, {
-      type: "image/png",
-    }]))
-    setImage(image)
-    setName(name)
-    setOwner(owner)
+    const name = await NFTActor.getName();
+    const ownerPrinc = await NFTActor.getOwner();
+    const rawImage = await NFTActor.getContent();
+    const owner = ownerPrinc.toString();
+    const imageContent = new Uint8Array(rawImage);
+    const image = URL.createObjectURL(
+      new Blob([
+        imageContent.buffer,
+        {
+          type: "image/png",
+        },
+      ])
+    );
+    setImage(image);
+    setName(name);
+    setOwner(owner);
+    setButton(<Button handleClick={handleSale} text={"Sell"} />);
   }
+
+  let price;
+
+  const handleSale = () => {
+    setPriceInput(
+      <input
+        placeholder="Price in DANG"
+        type="number"
+        className="price-input"
+        value={price}
+        onChange={(e) => (price = e.target.value)}
+      />
+    );
+    setButton(<Button handleClick={sellItems} text={"Confirm"} />);
+  };
+
+  const sellItems = async () => {
+    console.log("Confirm clicked");
+    const listingResult = await opend_backend.listItem(NFTID, Number(price));
+    console.log("Listing" + listingResult);
+  };
 
   useEffect(() => {
     loadNFT();
@@ -43,11 +74,14 @@ function Item({ NFTID }) {
         />
         <div className="disCardContent-root">
           <h2 className="disTypography-root makeStyles-bodyText-24 disTypography-h5 disTypography-gutterBottom">
-            {name}<span className="purple-text"></span>
+            {name}
+            <span className="purple-text"></span>
           </h2>
           <p className="disTypography-root makeStyles-bodyText-24 disTypography-body2 disTypography-colorTextSecondary">
             Owner: {owner}
           </p>
+          {priceInput}
+          {button}
         </div>
       </div>
     </div>
