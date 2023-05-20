@@ -72,4 +72,12 @@ actor OpenD {
 
         return "Success";
     };
+
+    public shared (msg) func transferOwnership(newOwner: Principal) : async Text {
+        if (msg.caller == nftOwner) {
+
+        } else {
+            return "Error: Not initiated by nft owner"
+        }
+    };
 };
