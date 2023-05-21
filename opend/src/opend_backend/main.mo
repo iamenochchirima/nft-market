@@ -67,17 +67,21 @@ actor OpenD {
             };
             mapOfListings.put(id, newListing);
         } else {
-            return "You are not the owner of the NFT"
+            return "You are not the owner of the NFT";
         };
 
         return "Success";
     };
 
-    public shared (msg) func transferOwnership(newOwner: Principal) : async Text {
-        if (msg.caller == nftOwner) {
+    public query func getOpenDCanisterID() : async Principal {
+        Principal.fromActor(OpenD);
+    };
 
+    public query func isListed(id : Principal) : async Bool {
+        if (mapOfListings.get(id) == null) {
+            return false;
         } else {
-            return "Error: Not initiated by nft owner"
-        }
+            return true;
+        };
     };
 };
