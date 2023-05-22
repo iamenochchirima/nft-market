@@ -5,7 +5,7 @@ import { Principal } from "@dfinity/principal";
 import Button from "./Button";
 import { opend_backend } from "../../../declarations/opend_backend/index";
 
-function Item({ NFTID }) {
+function Item({ NFTID, role }) {
   const localHost = "http://127.0.0.1:8080/";
   const agent = new HttpAgent({ host: localHost });
   const id = NFTID;
@@ -16,7 +16,7 @@ function Item({ NFTID }) {
   const [priceInput, setPriceInput] = useState();
   const [loaderHidden, setLoading] = useState(true);
   const [blur, setBlur] = useState();
-  const [sellStatus, setStatus] = useState("")
+  const [sellStatus, setStatus] = useState("");
 
   // TODO- When deploy live, remove the following line.
   agent.fetchRootKey();
@@ -42,21 +42,29 @@ function Item({ NFTID }) {
       ])
     );
 
-    const nftListed = await opend_backend.isListed(NFTID);
-    if (nftListed) {
-      setOwner("OpenD")
-      setBlur({ filter: "blur(4px)" });
-      setButton();
-      setStatus("Listed")
-    } else {
-      setOwner(owner);
-      setButton(<Button handleClick={handleSale} text={"Sell"} />);
+    if (role == "collection") {
+      const nftListed = await opend_backend.isListed(NFTID);
+      if (nftListed) {
+        setOwner("OpenD");
+        setBlur({ filter: "blur(4px)" });
+        setButton();
+        setStatus("Listed");
+      } else {
+        setOwner(owner);
+        setButton(<Button handleClick={handleSale} text={"Sell"} />);
+      }
+    } else if (role == "discover") {
+      setButton(<Button handleClick={handleBuy} text={"Buy"} />);
     }
     setImage(image);
     setName(name);
   }
 
   let price;
+
+  const handleBuy = async () => {
+    console.log("Buy was triggered");
+  };
 
   const handleSale = () => {
     setPriceInput(
@@ -82,7 +90,7 @@ function Item({ NFTID }) {
         setLoading(true);
         setButton();
         setPriceInput();
-        setStatus("Listed")
+        setStatus("Listed");
       }
     }
   };
