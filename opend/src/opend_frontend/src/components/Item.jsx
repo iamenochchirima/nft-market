@@ -4,6 +4,8 @@ import { idlFactory } from "../../../declarations/nft/index";
 import { Principal } from "@dfinity/principal";
 import Button from "./Button";
 import { opend_backend } from "../../../declarations/opend_backend/index";
+import CURRENT_USER_ID from "../index";
+import PriceLabel from "./PriceLabel";
 
 function Item({ NFTID, role }) {
   const localHost = "http://127.0.0.1:8080/";
@@ -17,10 +19,16 @@ function Item({ NFTID, role }) {
   const [loaderHidden, setLoading] = useState(true);
   const [blur, setBlur] = useState();
   const [sellStatus, setStatus] = useState("");
+  const [priceLabel, setPriceLabel] = useState()
 
   // TODO- When deploy live, remove the following line.
   agent.fetchRootKey();
   let NFTActor;
+
+  // useEffect(() => {
+  //   // window.location.reload();
+  //   console.log(role)
+  // }, [role]);
 
   async function loadNFT() {
     NFTActor = await Actor.createActor(idlFactory, {
@@ -33,15 +41,10 @@ function Item({ NFTID, role }) {
     const rawImage = await NFTActor.getContent();
     const owner = ownerPrinc.toString();
     const imageContent = new Uint8Array(rawImage);
-    const image = URL.createObjectURL(
-      new Blob([
-        imageContent.buffer,
-        {
-          type: "image/png",
-        },
-      ])
-    );
-
+    const image = URL.createObjectURL(new Blob([imageContent.buffer,{type: "image/png",},]));
+    setImage(image);
+    setName(name);
+    setOwner(owner);
     if (role == "collection") {
       const nftListed = await opend_backend.isListed(NFTID);
       if (nftListed) {
@@ -50,14 +53,17 @@ function Item({ NFTID, role }) {
         setButton();
         setStatus("Listed");
       } else {
-        setOwner(owner);
         setButton(<Button handleClick={handleSale} text={"Sell"} />);
       }
     } else if (role == "discover") {
-      setButton(<Button handleClick={handleBuy} text={"Buy"} />);
+      const originalOwner = await opend_backend.getOriginalOwner(NFTID);
+      if (originalOwner.toText() != CURRENT_USER_ID.toText()) {
+        setButton(<Button handleClick={handleBuy} text={"Buy"} />);
+      }
+
+      const price = await opend_backend.getListedNFTPrice(NFTID);
+      setPriceLabel(<PriceLabel sellPrice={price.toString()}  />)
     }
-    setImage(image);
-    setName(name);
   }
 
   let price;
@@ -114,6 +120,7 @@ function Item({ NFTID, role }) {
           <div></div>
         </div>
         <div className="disCardContent-root">
+          {priceLabel}
           <h2 className="disTypography-root makeStyles-bodyText-24 disTypography-h5 disTypography-gutterBottom">
             {name}
             <span className="purple-text"> {sellStatus}</span>
