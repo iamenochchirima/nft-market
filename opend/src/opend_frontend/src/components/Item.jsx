@@ -21,6 +21,7 @@ function Item({ NFTID, role }) {
   const [blur, setBlur] = useState();
   const [sellStatus, setStatus] = useState("");
   const [priceLabel, setPriceLabel] = useState();
+  const [shouldDispay, setDisplay] = useState(true);
 
   // TODO- When deploy live, remove the following line.
   agent.fetchRootKey();
@@ -67,7 +68,7 @@ function Item({ NFTID, role }) {
   let price;
 
   const handleBuy = async () => {
-    console.log("Buy was triggered");
+    setLoading(false);
     const tokenActor = await Actor.createActor(tokenIdlFactory, {
       agent,
       canisterId: Principal.fromText("rkp4c-7iaaa-aaaaa-aaaca-cai"),
@@ -84,6 +85,8 @@ function Item({ NFTID, role }) {
         CURRENT_USER_ID
       );
       console.log("Purchase " + transferResult);
+      setLoading(true);
+      setDisplay(false);
     }
   };
 
@@ -121,7 +124,10 @@ function Item({ NFTID, role }) {
   }, []);
 
   return (
-    <div className="disGrid-item">
+    <div
+      style={{ display: shouldDispay ? "inline" : "none" }}
+      className="disGrid-item"
+    >
       <div className="disPaper-root disCard-root makeStyles-root-17 disPaper-elevation1 disPaper-rounded">
         <img
           className="disCardMedia-root makeStyles-image-19 disCardMedia-media disCardMedia-img"
