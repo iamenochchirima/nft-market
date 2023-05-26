@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "../../../declarations/nft/index";
+import { idlFactory as tokenIdlFactory } from "../../../declarations/token_backend/index";
 import { Principal } from "@dfinity/principal";
 import Button from "./Button";
 import { opend_backend } from "../../../declarations/opend_backend/index";
@@ -19,16 +20,11 @@ function Item({ NFTID, role }) {
   const [loaderHidden, setLoading] = useState(true);
   const [blur, setBlur] = useState();
   const [sellStatus, setStatus] = useState("");
-  const [priceLabel, setPriceLabel] = useState()
+  const [priceLabel, setPriceLabel] = useState();
 
   // TODO- When deploy live, remove the following line.
   agent.fetchRootKey();
   let NFTActor;
-
-  // useEffect(() => {
-  //   // window.location.reload();
-  //   console.log(role)
-  // }, [role]);
 
   async function loadNFT() {
     NFTActor = await Actor.createActor(idlFactory, {
@@ -41,7 +37,9 @@ function Item({ NFTID, role }) {
     const rawImage = await NFTActor.getContent();
     const owner = ownerPrinc.toString();
     const imageContent = new Uint8Array(rawImage);
-    const image = URL.createObjectURL(new Blob([imageContent.buffer,{type: "image/png",},]));
+    const image = URL.createObjectURL(
+      new Blob([imageContent.buffer, { type: "image/png" }])
+    );
     setImage(image);
     setName(name);
     setOwner(owner);
@@ -62,7 +60,7 @@ function Item({ NFTID, role }) {
       }
 
       const price = await opend_backend.getListedNFTPrice(NFTID);
-      setPriceLabel(<PriceLabel sellPrice={price.toString()}  />)
+      setPriceLabel(<PriceLabel sellPrice={price.toString()} />);
     }
   }
 
@@ -70,6 +68,23 @@ function Item({ NFTID, role }) {
 
   const handleBuy = async () => {
     console.log("Buy was triggered");
+    const tokenActor = await Actor.createActor(tokenIdlFactory, {
+      agent,
+      canisterId: Principal.fromText("rkp4c-7iaaa-aaaaa-aaaca-cai"),
+    });
+
+    const sellerId = await opend_backend.getOriginalOwner(NFTID);
+    const itemPrice = await opend_backend.getListedNFTPrice(NFTID);
+
+    const result = await tokenActor.transfer(sellerId, itemPrice);
+    if (result == "Success") {
+      const transferResult = await opend_backend.completePurchase(
+        NFTID,
+        sellerId,
+        CURRENT_USER_ID
+      );
+      console.log("Purchase " + transferResult);
+    }
   };
 
   const handleSale = () => {
